@@ -1,6 +1,7 @@
 
 #include "ktremotedb.h"
 #include "ktlangc.h"
+#include "kcutil.h"
 
 using namespace kyototycoon;
 
@@ -23,7 +24,7 @@ extern "C" {
      * Open a database file.
      */
     int32_t ktdbopen(KTRDB* db, const char* host, int32_t port, double timeout) {
-        _assert_(db && path);
+        _assert_(db && host);
         RemoteDB* pdb = (RemoteDB*)db;
         return pdb->open(host, port, timeout);
     }
@@ -38,13 +39,13 @@ extern "C" {
     }
 
     int32_t ktdbset(KTRDB* db, const char* kbuf, size_t ksiz, const char* vbuf, size_t vsiz) {
-        _assert_(db && kbuf && ksiz <= MEMMAXSIZ && vbuf && vsiz <= MEMMAXSIZ);
+        //_assert_(db && kbuf && ksiz <= MEMMAXSIZ && vbuf && vsiz <= MEMMAXSIZ);
         RemoteDB* pdb = (RemoteDB*)db;
         return pdb->set(kbuf, ksiz, vbuf, vsiz);
     }
 
     int32_t ktdbadd(KTRDB* db, const char* kbuf, size_t ksiz, const char* vbuf, size_t vsiz) {
-        _assert_(db && kbuf && ksiz <= MEMMAXSIZ && vbuf && vsiz <= MEMMAXSIZ);
+        //_assert_(db && kbuf && ksiz <= MEMMAXSIZ && vbuf && vsiz <= MEMMAXSIZ);
         RemoteDB* pdb = (RemoteDB*)db;
         return pdb->add(kbuf, ksiz, vbuf, vsiz);
     }
@@ -53,7 +54,7 @@ extern "C" {
      * Replace the value of a record.
      */
     int32_t ktdbreplace(KTRDB* db, const char* kbuf, size_t ksiz, const char* vbuf, size_t vsiz) {
-        _assert_(db && kbuf && ksiz <= MEMMAXSIZ && vbuf && vsiz <= MEMMAXSIZ);
+        //_assert_(db && kbuf && ksiz <= MEMMAXSIZ && vbuf && vsiz <= MEMMAXSIZ);
         RemoteDB* pdb = (RemoteDB*)db;
         return pdb->replace(kbuf, ksiz, vbuf, vsiz);
     }
@@ -62,7 +63,7 @@ extern "C" {
      * Append the value of a record.
      */
     int32_t ktdbappend(KTRDB* db, const char* kbuf, size_t ksiz, const char* vbuf, size_t vsiz) {
-        _assert_(db && kbuf && ksiz <= MEMMAXSIZ && vbuf && vsiz <= MEMMAXSIZ);
+        //_assert_(db && kbuf && ksiz <= MEMMAXSIZ && vbuf && vsiz <= MEMMAXSIZ);
         RemoteDB* pdb = (RemoteDB*)db;
         return pdb->append(kbuf, ksiz, vbuf, vsiz);
     }
@@ -71,13 +72,13 @@ extern "C" {
      * Add a number to the numeric value of a record.
      */
     int64_t ktdbincrint(KTRDB* db, const char* kbuf, size_t ksiz, int64_t num, int64_t orig) {
-        _assert_(db && kbuf && ksiz <= MEMMAXSIZ);
+        //_assert_(db && kbuf && ksiz <= MEMMAXSIZ);
         RemoteDB* pdb = (RemoteDB*)db;
         return pdb->increment(kbuf, ksiz, num, orig);
     }
     
     char* ktdbget(KTRDB* db, const char* kbuf, size_t ksiz, size_t* sp) {
-        _assert_(db && kbuf && ksiz <= MEMMAXSIZ && sp);
+        //_assert_(db && kbuf && ksiz <= MEMMAXSIZ && sp);
         RemoteDB* pdb = (RemoteDB*)db;
         return pdb->get(kbuf, ksiz, sp);
     }
@@ -86,7 +87,7 @@ extern "C" {
      * Remove a record.
      */
     int32_t ktdbremove(KTRDB* db, const char* kbuf, size_t ksiz) {
-        _assert_(db && kbuf && ksiz <= MEMMAXSIZ);
+        //_assert_(db && kbuf && ksiz <= MEMMAXSIZ);
         RemoteDB* pdb = (RemoteDB*)db;
         return pdb->remove(kbuf, ksiz);
     }
@@ -98,7 +99,7 @@ extern "C" {
     }
 
     int64_t ktdbmatchprefix(KTRDB* db, const char* prefix, char** strary, size_t max) {
-        _assert_(db && prefix && strary && max <= MEMMAXSIZ);
+        //_assert_(db && prefix && strary && max <= MEMMAXSIZ);
         RemoteDB* pdb = (RemoteDB*)db;
         std::vector<std::string> strvec;
         if (pdb->match_prefix(prefix, &strvec, max) == -1) return -1;

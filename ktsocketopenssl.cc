@@ -146,6 +146,7 @@ bool SecChannel::accept() {
   SecChannelOpenSSL* core = (SecChannelOpenSSL*)opq_;
   int rc = SSL_accept(core->ssl);
   if (rc != 1) {
+	int error = SSL_get_error(core->ssl, rc);
     seterrmsg(core, rc);
     return false;
   }
@@ -165,26 +166,32 @@ bool SecChannel::bind_server(int32_t fd, const char* ca, const char* pk, const c
   EC_KEY *ecdh = NULL;
   SecChannelOpenSSL* core = (SecChannelOpenSSL*)opq_;
   core->state = SecChannel::SSNEGOTIATING;
-  core->ctx = SSL_CTX_new(TLSv1_2_server_method());
+  core->ctx = SSL_CTX_new(SSLv3_server_method());
   if (core->ctx == NULL) {
     seterrmsg(core, SEInternal, "SSL_CTX_new failed");
     goto fail;
   }
   core->state = SecChannel::SSCTXCREATED;
+  /*
   if (SSL_CTX_set_cipher_list(core->ctx, CIPHER_LIST) <= 0) {
     seterrmsg(core, SEInternal, "SSL_CTX_set_cipher_list failed");
     goto fail;
   }
+  */
   if (SSL_CTX_use_certificate_file(core->ctx, cert, SSL_FILETYPE_PEM) <= 0) {
     seterrmsg(core, SEFileError, "Error setting the certificate file");
     goto fail;
   }
+  /*
   if (read_key_asn1(pk, &core->key, &len) != 0) {
     seterrmsg(core, SEFileError, "Error reading the key file");
     goto fail;
   }
-  if (SSL_CTX_use_PrivateKey_ASN1(EVP_PKEY_EC, core->ctx, core->key, len) <= 0) {
+  */
+
+  if (SSL_CTX_use_PrivateKey_file(core->ctx, pk, SSL_FILETYPE_PEM) <= 0) {
     seterrmsg(core, SEFileError, "Error setting the openssl key");
+	seterrmsg(core, rc);
     goto fail;
   }
   if (SSL_CTX_check_private_key(core->ctx) == 0) {
@@ -220,6 +227,13 @@ bool SecChannel::bind_server(int32_t fd, const char* ca, const char* pk, const c
     seterrmsg(core, SEInternal, "SSL_new failed");
     goto fail;
   }
+  /*
+  if(SSL_set_cipher_list(core->ssl, CIPHER_LIST) <=0)
+  {
+	  seterrmsg(core, SEInternal, "SSL_set_cipher_list failed");
+	  goto fail;
+  }
+  */
   core->state = SecChannel::SSCREATED;
   rc = SSL_set_fd(core->ssl, fd);
   if (rc != 1) {
@@ -273,25 +287,29 @@ bool SecChannel::bind_client(int32_t fd, const char* ca, const char* pk, const c
   SecChannelOpenSSL* core = (SecChannelOpenSSL*)opq_;
   STACK_OF(X509_NAME) *cert_names;
   core->state = SecChannel::SSNEGOTIATING;
-  core->ctx = SSL_CTX_new(TLSv1_2_client_method());
+  core->ctx = SSL_CTX_new(SSLv3_client_method());
   if (core->ctx == NULL) {
     seterrmsg(core, SEInternal, "SSL_CTX_new failed");
     goto fail;
   }
   core->state = SecChannel::SSCTXCREATED;
+  /*
   if (SSL_CTX_set_cipher_list(core->ctx, CIPHER_LIST) <= 0) {
     seterrmsg(core, SEInternal, "SSL_CTX_set_cipher_list failed");
     goto fail;
   }
+  */
   if (SSL_CTX_use_certificate_file(core->ctx, cert, SSL_FILETYPE_PEM) <= 0) {
     seterrmsg(core, SEFileError, "Error setting the certificate file");
     goto fail;
   }
+/*
   if (read_key_asn1(pk, &core->key, &len) != 0) {
     seterrmsg(core, SEFileError, "Error reading the key file");
     goto fail;
   }
-  if (SSL_CTX_use_PrivateKey_ASN1(EVP_PKEY_EC, core->ctx, core->key, len) <= 0) {
+  */
+  if (SSL_CTX_use_PrivateKey_file(core->ctx, pk, SSL_FILETYPE_PEM) <= 0) {
     seterrmsg(core, SEFileError, "Error setting the openssl key");
     goto fail;
   }
@@ -332,6 +350,13 @@ bool SecChannel::bind_client(int32_t fd, const char* ca, const char* pk, const c
     seterrmsg(core, SEInternal, "SSL_new failed");
     goto fail;
   }
+  /*
+  if (SSL_set_cipher_list(core->ssl, CIPHER_LIST) <= 0)
+  {
+	  seterrmsg(core, SEInternal, "SSL_set_cipher_list failed");
+	  goto fail;
+  }
+  */
   core->state = SecChannel::SSCREATED;
   rc = SSL_set_fd(core->ssl, fd);
   if (rc != 1) {
@@ -425,7 +450,7 @@ SecChannel::SecState SecChannel::secstate() {
  * Set the error and message from an OpenSSL rc
  */
 static void seterrmsg(SecChannelOpenSSL *core, int rc) {
-  _assert_(core && msg);
+  //_assert_(core && msg);
   int errnum = SSL_get_error(core->ssl, rc);
   switch (errnum) {
   case SSL_ERROR_NONE:
@@ -539,6 +564,7 @@ static int read_key_asn1(const char *path, unsigned char **key, long *len) {
   }
   is.close();
   *len = localLen;
+  *key = localKey;
   return 0;
 }
 

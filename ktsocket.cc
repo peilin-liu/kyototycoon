@@ -320,6 +320,7 @@ bool Socket::open(const std::string& expr, bool secure,
       ::close(fd);
       return false;
     }
+	break;
   }
   if (::fcntl(fd, F_SETFL, flags) != 0) {
     sockseterrmsg(core, "fcntl failed");
@@ -1499,7 +1500,8 @@ bool Poller::wait(double timeout) {
         core->elock.unlock();
       }
       return true;
-    } else if (rv == 0 || checkerrnoretriable(errno)) {
+    } 
+	else if (rv == 0 || checkerrnoretriable(errno)) {
       if (kc::time() > ct + timeout) {
         pollseterrmsg(core, "operation timed out");
         break;
